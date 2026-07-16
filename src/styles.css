@@ -1,1 +1,33 @@
-/* You can add global styles to this file, and also import other style files */
+* {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+@font-face {
+    font-family: "Rubik Wet Paint";
+    src: url(../public/fonts/RubikWetPaint-Regular.woff2);
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Saira Semi Condensed";
+    src: url(../public/fonts/SairaSemiCondensed-Bold.woff2);
+    font-weight: 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Saira Semi Condensed";
+    src: url(../public/fonts/SairaSemiCondensed-Medium.ttf);
+    font-weight: 500;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Saira Semi Condensed";
+    src: url(../public/fonts/SairaSemiCondensed-Regular.woff2);
+    font-weight: 400;
+    font-display: swap;
+}
