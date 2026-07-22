@@ -701,11 +701,13 @@ nav {
     height: 150px;
     display: flex;
     justify-content: space-between;
-    margin: 48px 0;
+    margin: 44px 0;
+    padding: 0 120px;
     gap: 32px;
 
     @media (max-width: 1200px){
         overflow-x: scroll;
+        padding: 0;
         padding-right: 24px;
     }
 
@@ -726,6 +728,7 @@ nav {
     text-align: center;
     color: rgba(245, 245, 245, 0.9);
     font-size: 14px;
+    padding-top: 4px;
     cursor: pointer;
     @media (max-width: 760px){
         width: 76px;
@@ -744,6 +747,8 @@ nav {
     justify-content: center;
     border-radius: 10px;
     margin-bottom: 8px;
+    box-shadow: 2px 2px 10px 2px rgba(0, 0, 0, 0.1);
+
     box-sizing: border-box;
     @media (max-width: 760px){
         width: 76px;
@@ -762,7 +767,6 @@ nav {
     justify-content: center;
     align-content: center;
     flex-shrink: 0;
-
     @media (max-width: 760px){
         width: 48px;
         height: 48px;
@@ -779,13 +783,26 @@ nav {
     -webkit-appearance: none;
 }
 
-section {
+.main-section {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 100%;
+    gap: 48px;
+
+    @media (max-width: 760px){
+        gap: 24px;
+    }
+}
+
+.main-section section {
     position: relative;
     width: 100%;
     height: 595px;
     background-color: #1D1D1D;
     padding: 20px;
     border-radius: 10px;
+    box-shadow: 2px 2px 10px 2px rgba(0, 0, 0, 0.1);
 
     @media (max-width: 760px){
         width: 100vw;
@@ -809,6 +826,13 @@ section h1 {
     color: #EDA026;
 }
 
+.peripherals h1 {
+    color: #1A72B1;
+}
+
+.setup h1 {
+color: rgba(127, 248, 228, 0.8);
+}
 .product-wrapper {
     display: flex;
     width: auto;
@@ -856,42 +880,38 @@ section h1 {
 }
 
 .product-description {
-    display: flex;
+    display: -webkit-box;
     align-items: end;
     width: 100%;
+    min-height: calc(1rem * 3);
     font-size: 14px;
+    line-height: 1rem;
     color: rgba(245, 245, 245, 0.9);
     letter-spacing: 1%;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     text-align: justify;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 @media (max-width: 760px){
-        .product-description {
-            margin-bottom: 8px;
-            height: 32px;
-            text-overflow: clip;
-            text-align-last: justify;
-            overflow: hidden;
-        }
+    .product-description {
+        margin-bottom: 8px;
+        text-overflow: clip;
+        -webkit-line-clamp: 2;
+        min-height: calc(1rem * 2);
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
         
-        .product-description span {
-        display: inline !important;
-        }
 }
 
-.product-description span {
-    display: none;
-    width: auto;
-    padding: 0;
-    margin: 0;
-}
 
 .rate-and-sell {
     display: flex;
     width: 100%;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     align-items: center;
     @media (max-width: 760px){
         margin-bottom: 4px;
@@ -906,7 +926,8 @@ section h1 {
     align-items: center;
 }
 
-.stars svg {
+.all-stars span {
+    display: inline-block;
     width: 20px;
     height: 20px;
     @media (max-width: 760px){
@@ -914,6 +935,44 @@ section h1 {
         height: 18px;
     }
 }
+
+.all-stars span svg{
+    display: inline-flex !important;
+    width: 100% !important;
+    height: 100% !important;
+    isolation: isolate;
+    
+}
+
+
+
+.all-stars .star-half {
+    display: inline-block;
+    position: relative;
+}
+
+
+
+
+.star-half::after {
+    content: "";
+    display: inline-flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: scaleX(-1);
+    vertical-align: middle;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 640'%3E%3Cpath d='M336.1 71.6C336.1 60.5 328.5 50.9 317.7 48.3C306.9 45.7 295.8 50.8 290.7 60.7L225.1 189.3L65.2 214.7C56.3 216.1 48.9 222.4 46.1 231C43.3 239.6 45.6 249 51.9 255.4L166.3 369.9L141.1 529.8C139.7 538.7 143.4 547.7 150.7 553C158 558.3 167.6 559.1 175.7 555L323 480.1C331 476 336.1 467.7 336.1 458.7L336.1 71.6z'/%3E%3C/svg%3E");
+    mask-size: cover;
+    width: 20px;
+    height: 20px;
+    background-color: rgb(156, 156, 156);
+    @media (max-width: 760px){
+        width: 18px;
+        height: 18px;
+    }
+}
+
 
 .rate {
     font-size: 14px;
@@ -950,6 +1009,9 @@ section h1 {
     font-weight: 400;
     color: rgba(245, 245, 245, 0.5);
     margin-bottom: 12px;
+    @media (max-width: 760px){
+       font-size: 13.5px;
+    }
 }
 
 .buttons {
@@ -1024,7 +1086,6 @@ section .arrowBack {
     cursor: pointer;
 }
 
-
 section .arrowNext {
     height: 100%;
 }
@@ -1039,14 +1100,6 @@ section .arrowBack:active svg, section .arrowNext:active svg{
     fill: rgba(245, 245, 245, 0.6);
 }
 
-
-
-.product-wrapper::-webkit-scrollbar-track {
-    background-color: transparent;
-}
-
-
-
 .product-wrapper::-webkit-scrollbar {
     height: 8px;
 }
@@ -1055,8 +1108,52 @@ section .arrowBack:active svg, section .arrowNext:active svg{
     background-color: rgba(0,0,0,0.1) ;
 }
 
-.product-wrapper::-webkit-scrollbar-thumb:hover {
+.product-wrapper::-webkit-scrollbar-thumb {
     background-color: #61cddd52;
     border-radius: 2px;
     cursor: grab;
+}
+
+.explore {
+    width: 315px;
+    height: 59px;
+    display: flex;
+    position: relative;
+    align-self: center;
+    margin: 100px 0;
+}
+
+.explore-more {
+    width: 100%;
+    height: 100%;
+    font-size: 24px;
+    font-weight: 600;
+    color: rgba(245, 245, 245, 0.9);
+    letter-spacing: 1%;
+    background-color: #1A72B1;
+    border-radius: 4px;
+    border:  none;
+    box-shadow: 2px 2px 10px 4px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+}
+
+.explore-more:hover {
+    transform: scale(0.999);
+    background-color: rgba(0, 132, 227, 0.6);
+}
+
+.explore-more:active {
+    transform: scale(0.996);
+    background-color: rgba(0, 132, 227, 0.4);
+}
+
+@media (max-width: 760px){
+    .explore {
+        width: 180px;
+        height: 48px;
+        margin: 60px 0;
+    }
+    .explore-more {
+        font-size: 16.5px;
+    }
 }

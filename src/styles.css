@@ -31,3 +31,9 @@
     font-weight: 400;
     font-display: swap;
 }
+
+footer {
+    width: 100%;
+    height: 404px;
+    background-color: #666666;
+}

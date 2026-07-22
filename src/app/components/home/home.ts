@@ -1,7 +1,22 @@
-import { Component, ElementRef, Renderer2, ViewChild, viewChild, inject, ChangeDetectorRef, AfterViewInit, ViewChildren, QueryList, RendererStyleFlags2 } from '@angular/core';
+import { Component, ElementRef, Renderer2, ViewChild, viewChild, inject, ChangeDetectorRef, AfterViewInit, ViewChildren, QueryList, RendererStyleFlags2, OnDestroy} from '@angular/core';
+import { ProductService } from '../../service/product-service';
 
 interface dotInterface {
   id:number;
+}
+
+interface Item {
+  id:number;
+  title:string;
+  brand:string;
+  price:any;
+  installments?:string;
+  stock:number;
+  rating:number;
+  category:string;
+  description:string;
+  images?:string;
+  sales:number;
 }
 
 @Component({
@@ -10,15 +25,18 @@ interface dotInterface {
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-export class Home implements AfterViewInit{
+
+export class Home implements AfterViewInit, OnDestroy{
   @ViewChild('slideWrapper') slideWrapper!:ElementRef
   @ViewChild('arrowBack') arrowBack!:ElementRef
   @ViewChild('arrowNext') arrowNext!:ElementRef
   @ViewChildren('dots') dots!: QueryList<ElementRef>
-  @ViewChild('productWrapper') productWrapper!:ElementRef
-  // @ViewChildren('productWrapper') productList!: QueryList<ElementRef>
-  @ViewChild('sectionBack') sectionBack!:ElementRef
-  @ViewChild('sectionNext') sectionNext!:ElementRef
+  // @ViewChild('productWrapper') productWrapper!:ElementRef
+  @ViewChildren('productWrapper') productWrapper!: QueryList<ElementRef>
+  @ViewChildren('sectionBack') sectionBackList!: QueryList<ElementRef>
+  @ViewChildren('sectionNext') sectionNextList!: QueryList<ElementRef>
+  // @ViewChild('sectionBack') sectionBack!:ElementRef
+  // @ViewChild('sectionNext') sectionNext!:ElementRef  
 
   next:number = 0
   back:number = 0
@@ -26,22 +44,32 @@ export class Home implements AfterViewInit{
   slideTime = 0
   dotsArray:dotInterface[] = []
   children:any
+  arrayProductWrapper:any
+  slideProduct:any
+  sectionBack:any
+  sectionNext:any
   totalRan = 0
   scroll:number = 0
-  sectionInterval:any
-  lastScroll: number = 0
+  scrollSize:number = 0
+  lastScroll:number = 0
+  sectionAnimation: any
+  allProduct:Item[]=[]
+  hotOffers:Item[]=[]
+  peripherals:Item[]=[]
+  setup:Item[]=[]
+  currencyBR:string = ''
+  rating:string[] = []
+
   constructor(private renderer:Renderer2){}
   private cdr = inject(ChangeDetectorRef)
+  private itemService = inject(ProductService)
 
 
   ngAfterViewInit () {
-    
     setTimeout(() => {
       if(this.slideWrapper && this.slideWrapper.nativeElement) {
         this.slideAnimation()
-        // setTimeout(() => {
-        //   this.sectionSlideAnimation()
-        // }, 5800)
+
         this.sectionSlideAnimation()
 
       }
@@ -55,12 +83,12 @@ export class Home implements AfterViewInit{
       }
     })
 
-    if(this.totalRan <= 0) {
-          
-      this.renderer.setStyle(this.sectionBack.nativeElement, 'display', 'none', RendererStyleFlags2.Important)
-    }
+    this.showProducts()
+    this.cdr.detectChanges()
+  }
 
-
+  ngOnDestroy(): void {
+    clearInterval(this.sectionAnimation)
   }
 
   slideAnimation () {
@@ -96,10 +124,10 @@ export class Home implements AfterViewInit{
       if(el.nativeElement.classList.contains('active')) {
 
         
-        let dotTransform = index * 100
-        console.log(index)
-        this.renderer.setStyle(this.slideWrapper.nativeElement, 'transform', `translateX(-${dotTransform}%)`)
-        this.renderer.setStyle(this.slideWrapper.nativeElement, 'transition', 'transform 1.2s ease', RendererStyleFlags2.Important)
+      let dotTransform = index * 100
+      console.log(index)
+      this.renderer.setStyle(this.slideWrapper.nativeElement, 'transform', `translateX(-${dotTransform}%)`)
+      this.renderer.setStyle(this.slideWrapper.nativeElement, 'transition', 'transform 1.2s ease', RendererStyleFlags2.Important)
         
     }
     })
@@ -146,98 +174,64 @@ export class Home implements AfterViewInit{
   }
 
   dotAnimation () {
-     const slideIndex = this.next / 100
+    const slideIndex = this.next / 100
 
-      this.dots.forEach(e => {
-        e.nativeElement.classList.remove('active')
-        this.dots.get(slideIndex)?.nativeElement.classList.add('active')    
-      })
+    this.dots.forEach(e => {
+      e.nativeElement.classList.remove('active')
+      this.dots.get(slideIndex)?.nativeElement.classList.add('active')    
+    })
   }
 
-  sectionItemNext() {
-    const visibleWidth = this.productWrapper.nativeElement.clientWidth
-    let scrollPositionX = this.productWrapper.nativeElement.scrollLeft
-    const scrollTotal = this.productWrapper.nativeElement.scrollWidth - visibleWidth
+  sectionItemNext(section:HTMLElement,sectionNext:HTMLElement) {
+    const visibleWidth = section.clientWidth
+    let scrollPositionX = section.scrollLeft
+    const scrollTotal = section.scrollWidth - visibleWidth
     this.totalRan = (scrollPositionX / scrollTotal) * 100
 
-
-    // clearInterval (this.sectionInterval)
-    
-    
-    if(this.totalRan < 100 && visibleWidth >= 400) {
-      this.scroll = 300
-      this.productWrapper.nativeElement.scrollBy( {
+    const scrollWidth = section.scrollWidth
+    this.scrollSize = (scrollWidth / section.children.length)
+        
+    if(this.totalRan < 100) {
+      this.scroll = this.scrollSize
+      section.scrollBy( {
         left: this.scroll,
         behavior: 'smooth'
       })
 
       if(this.lastScroll < 400) {
-        this.renderer.setStyle(this.sectionNext.nativeElement, 'display', 'none')
+        this.renderer.setStyle(sectionNext, 'display', 'none')
       } else if(this.lastScroll > 400) {
-        this.renderer.setStyle(this.sectionNext.nativeElement, 'display', 'flex')
+        this.renderer.setStyle(sectionNext, 'display', 'flex')
       }
       
-
-      console.log('bigger' + visibleWidth, 'position' + scrollPositionX, scrollTotal, this.totalRan)
-
-      // setTimeout (()=> {
-      // this.sectionSlideAnimation()
-      // }, 5800)
-    } else if(this.totalRan < 100 && visibleWidth < 400) {
-      this.scroll = 240
-      this.productWrapper.nativeElement.scrollBy( {
-        left: this.scroll,
-        behavior: 'smooth'
-      })
-
-      console.log('smaller' + visibleWidth, this.scroll)
-    //   setTimeout (()=> {
-    //   this.sectionSlideAnimation()
-    // }, 5800)
-    }
-
-    
+    } 
     
   }
 
-  sectionItemBack() {
-    const visibleWidth = this.productWrapper.nativeElement.clientWidth
-    let scrollPositionX = this.productWrapper.nativeElement.scrollLeft
-    const scrollTotal = this.productWrapper.nativeElement.scrollWidth - visibleWidth
+  sectionItemBack(section:HTMLElement) {
+    const visibleWidth = section.clientWidth
+    let scrollPositionX = section.scrollLeft
+    const scrollTotal = section.scrollWidth - visibleWidth
     this.totalRan = (scrollPositionX / scrollTotal) * 100
 
-    // clearInterval (this.sectionInterval)
+    const scrollWidth = section.scrollWidth
+    this.scrollSize = (scrollWidth / section.children.length)
 
-    if(this.totalRan > 0 && visibleWidth >= 400) {
-      this.scroll = -300
-      this.productWrapper.nativeElement.scrollBy( {
+    if(this.totalRan > 0 ) {
+      this.scroll = -this.scrollSize
+      section.scrollBy( {
         left: this.scroll,
         behavior: 'smooth'
       })
 
-      console.log( scrollTotal - this.totalRan)
-      // setTimeout (()=> {
-      // this.sectionSlideAnimation()
-      // }, 2800)
-    } else if(this.totalRan < 100 && visibleWidth < 400) {
-      this.scroll = -240
-      this.productWrapper.nativeElement.scrollBy( {
-        left: this.scroll,
-        behavior: 'smooth'
-      })
-
-      console.log('smaller' + visibleWidth, this.scroll)
-      // setTimeout (()=> {
-      // this.sectionSlideAnimation()
-      // }, 5800)
     }
     
   }
 
-  visibleArrow() {
-    const visibleWidth = this.productWrapper.nativeElement.clientWidth
-    let scrollPositionX = this.productWrapper.nativeElement.scrollLeft
-    const scrollTotal = this.productWrapper.nativeElement.scrollWidth - visibleWidth
+  visibleArrow(section:HTMLElement, sectionBack:HTMLElement, sectionNext:HTMLElement) {
+    const visibleWidth = section.clientWidth
+    let scrollPositionX = section.scrollLeft
+    const scrollTotal = section.scrollWidth - visibleWidth
     this.totalRan = (scrollPositionX / scrollTotal) * 100
 
     this.lastScroll = scrollTotal - this.totalRan
@@ -245,58 +239,132 @@ export class Home implements AfterViewInit{
 
     if(visibleWidth >= 400) {
       if(remaiderScroll > 100) {
-        this.renderer.setStyle(this.sectionNext.nativeElement, 'display', 'flex')
+        this.renderer.setStyle(sectionNext, 'display', 'flex')
       } else {
-        this.renderer.setStyle(this.sectionNext.nativeElement, 'display', 'none')
+        this.renderer.setStyle(sectionNext, 'display', 'none')
       }
 
-    if((scrollTotal - 100) > remaiderScroll) {
-        this.renderer.setStyle(this.sectionBack.nativeElement, 'display', 'flex')
+      if((scrollTotal - 100) > remaiderScroll) {
+        this.renderer.setStyle(sectionBack, 'display', 'flex')
       } else {
-        this.renderer.setStyle(this.sectionBack.nativeElement, 'display', 'none')
+        this.renderer.setStyle(sectionBack, 'display', 'none')
       }
     } else {
       if(remaiderScroll > 60) {
-      this.renderer.setStyle(this.sectionNext.nativeElement, 'display', 'flex')
-    } else {
-      this.renderer.setStyle(this.sectionNext.nativeElement, 'display', 'none')
+        this.renderer.setStyle(sectionNext, 'display', 'flex')
+      } else {
+        this.renderer.setStyle(sectionNext, 'display', 'none')
+      }
+
+      if((scrollTotal - 60) > remaiderScroll) {
+        this.renderer.setStyle(sectionBack, 'display', 'flex')
+      } else {
+        this.renderer.setStyle(sectionBack, 'display', 'none')
+      }
     }
 
-    if((scrollTotal - 60) > remaiderScroll) {
-      this.renderer.setStyle(this.sectionBack.nativeElement, 'display', 'flex')
-    } else {
-      this.renderer.setStyle(this.sectionBack.nativeElement, 'display', 'none')
-    }
-    }
-
-
-    
-    
   }
 
-  sectionSlideAnimation() {
-    // clearInterval (this.sectionInterval)
+  sectionSlideAnimation() {    
     
-    
-    this.sectionInterval = setInterval(()=> {
+    this.sectionAnimation = setInterval(()=> {
+
+      this.sectionBackList.toArray().forEach((el:ElementRef)=> {
+        this.sectionBack = el.nativeElement
+      })
+        this.sectionNextList.toArray().forEach((el:ElementRef)=> {
+        this.sectionNext = el.nativeElement
+      })
+      this.arrayProductWrapper = this.productWrapper.toArray()
       
       if(this.totalRan < 100){
 
-        this.sectionItemNext()
-        
-        console.log('total:'+ this.totalRan)
-      } else if (this.totalRan >= 100){
-        
-        this.productWrapper.nativeElement.scrollTo( {
-        left: 0,
-        behavior: 'smooth'
+        this.arrayProductWrapper.forEach((element:ElementRef) => {
+          this.slideProduct = element.nativeElement
+          this.sectionItemNext(this.slideProduct, this.sectionNext)
         })
+
+      } else if (this.totalRan >= 100){
+
+        this.arrayProductWrapper.forEach((element:ElementRef) => {
+          this.slideProduct = element.nativeElement
+          this.slideProduct.scrollTo( {
+          left: 0,
+          behavior: 'smooth'
+          })
+
         this.totalRan = 0
         this.cdr.detectChanges()
+
+        })
+        
       }
     
     }, 5800)
     
   }
 
+  showProducts() {
+    this.itemService.getProducts().subscribe((data:any) => {
+      for(let i = 0; i < data.length; i++) {
+        this.allProduct.push(data[i])
+
+        this.cdr.detectChanges()
+        
+      }
+
+      this.hotOffers = this.allProduct.filter(item => item.sales > 1800)
+      
+      this.peripherals = this.allProduct.filter( item => {
+        return item.category === 'Periferico'
+      })
+
+      this.setup = this.allProduct.filter( item => {
+        return item.category === 'Setup'
+      })
+      
+      this.currencyToBR(this.allProduct)
+    })
+  }
+
+  currencyToBR(section:any) {
+    section.forEach( (item:any, index:number) => {
+      this.currencyConverter(section[index].price / 10)
+      section[index].installments =  this.currencyBR
+    })
+
+    section.forEach((item:any, index:number) => {
+      this.currencyConverter(section[index].price)
+      section[index].price = this.currencyBR
+    })
+      
+    this.cdr.detectChanges()
+  }
+
+
+  currencyConverter(valor:number) {
+    const price = valor
+    this.currencyBR = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(price)
+
+  }
+
+  rate(rate:number) {  
+    const int = Math.trunc(rate)
+    this.rating = ['empty','empty','empty','empty','empty']
+
+    for(let i = 0; i < int; i++) {
+      this.rating[i] = 'full'
+
+      if(rate % 1 !== 0 ) {
+        this.rating[int] = 'half'
+      }
+      
+    }
+  
+  }
+
+  
 }
